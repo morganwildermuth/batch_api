@@ -1,4 +1,5 @@
 require 'batch_api/response'
+require 'batch_api/logging'
 
 module BatchApi
   # Public: an individual batch operation.
