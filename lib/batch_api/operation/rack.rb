@@ -48,18 +48,27 @@ module BatchApi
         #custom format
         #method url params header status body
         #body conditional on a non 200 response
-        log_array = []
+        log_hash = {}
         ["method", "url", "params", "headers"].each do |key|
           value = @op[key]
           if value
-            log_array.push(value)
+            if key == "headers"
+              log_hash[key] = value["Authorization"]
+            else
+              if key == "params"
+                ["password", "password_confirmation", "password_digest", "encrypted_password", "reset_password_token", "uuid"].each do |hash_key|
+                  value[key] = "********"
+                end
+              end
+              log_hash[key] = value
+            end
           else
-            log_array.push("-")
+            log_hash[key] = "-"
           end
         end
-        log_array.push(response.status)
-        log_array.push(response.body) if response.status != 200
-        BatchApi.logger.info log_array.join(" ")
+        log_hash["status"] = response.status
+        log_hash["body"] = response.body if response.status != 200
+        BatchApi.logger.info log_hash
       end
 
       # Internal: customize the request environment.  This is currently done
