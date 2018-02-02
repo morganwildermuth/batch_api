@@ -37,7 +37,29 @@ module BatchApi
         rescue => err
           response = BatchApi::ErrorWrapper.new(err).render
         end
-        BatchApi::Response.new(response)
+        response = BatchApi::Response.new(response)
+        write_request_response_to_log(response)
+        response
+      end
+
+      def write_request_response_to_log(response)
+        #example log
+        #I, [2018-02-01T18:05:00.213624 #96347]  INFO -- : get api/v2/patients/1000241/accessible_patients - - 401 {"errors":["No user with that authentication token exists"]}
+        #custom format
+        #method url params header status body
+        #body conditional on a non 200 response
+        log_array = []
+        ["method", "url", "params", "headers"].each do |key|
+          value = @op[key]
+          if value
+            log_array.push(value)
+          else
+            log_array.push("-")
+          end
+        end
+        log_array.push(response.status)
+        log_array.push(response.body) if response.status != 200
+        BatchApi.logger.info log_array.join(" ")
       end
 
       # Internal: customize the request environment.  This is currently done
